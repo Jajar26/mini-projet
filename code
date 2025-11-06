@@ -1,0 +1,69 @@
+from transformers import AutoTokenizer, AutoModelForTokenClassification, AutoModelForSeq2SeqLM, pipeline
+
+class NERNEL:
+
+    def __init__(self):
+
+        # Chargement du tokenizer et du modèle pour la reconnaissance d'entités nommées (NER)
+        self.ner_tokenizer = AutoTokenizer.from_pretrained("Babelscape/wikineural-multilingual-ner")
+        self.ner_model = AutoModelForTokenClassification.from_pretrained("Babelscape/wikineural-multilingual-ner")
+
+        # Création du pipeline NER
+        self.ner_pipeline = pipeline("token-classification", model=self.ner_model, tokenizer=self.ner_tokenizer, aggregation_strategy="simple")
+
+        # Chargement du tokenizer et du modèle pour la désambiguïsation d'entités nommées (NED)
+        self.ned_tokenizer = AutoTokenizer.from_pretrained("facebook/mgenre-wiki")
+        self.ned_model = AutoModelForSeq2SeqLM.from_pretrained("facebook/mgenre-wiki")
+
+    def replace_entities_with_titles(self, text, topk=1):
+
+        # Étape 1 : Détection des entités nommées avec un score de confiance
+        entities = [entity for entity in self.ner_pipeline(text) if entity["score"] >= 0.5]
+
+        if not entities:
+            return text  # Retourne le texte original s'il n'y a pas d'entités fiables
+
+        # Étape 2 : Construction des prompts pour chaque entité détectée
+        prompts = []
+        for entity in entities:
+            start, end = entity["start"], entity["end"]
+            left = text[:start]  # Contexte avant l'entité
+            right = text[end:]   # Contexte après l'entité
+            # Insertion de balises pour encadrer l'entité dans le prompt
+            prompts.append(f"{left} [START_ENT] {entity['word']} [END_ENT] {right}")
+
+
+        # Étape 3 : Génération des titres Wikipédia à partir des prompts
+        inputs = self.ned_tokenizer(prompts, return_tensors="pt", padding=True)
+        outputs = self.ned_model.generate(
+            **inputs,
+            num_beams=5,              # Exploration de 5 chemins de génération
+            num_return_sequences=1    # On garde le meilleur titre
+        )
+        decoded_titles = self.ned_tokenizer.batch_decode(outputs, skip_special_tokens=True)
+
+        # Étape 4 : Remplacement des entités par les titres générés
+        replacements = []
+        for entity, title in zip(entities, decoded_titles):
+            clean_title = title.split(" >> ")[0]  # On enlève le suffixe de langue (ex: " >> en")
+            replacements.append((entity["start"], entity["end"], clean_title))
+
+        # Application des remplacements dans le texte original
+        output_text = text
+        for start, end, title in sorted(replacements, key=lambda x: x[0], reverse=True): # Part de la fin pour éviter les décalages
+            output_text = output_text[:start] + title + output_text[end:]
+
+        return output_text
+
+    def text_split(self, text):
+      sentences = text.split('.')  # Découpe le texte en phrases selon les points
+      processed = [self.replace_entities_with_titles(sentence.strip() + '.') for sentence in sentences] #Chaque phrase est traitée séparément
+      return ' '.join(processed)  # Reconstruction du texte final avec des espaces entre les phrases
+
+# Point d'entrée du script
+if __name__ == "__main__":
+    model = NERNEL()
+    text_example = """Einstein was a physicist. Tesla cars run on electric batteries. Newton mede la fuerza. El Newton es la medida para cuantificar la fuerza. Hilton investit. Je vais dormir au Hilton cette nuit."""
+    print(model.text_split(text_example))
+    long_text_example = """Hugo a écrit plusieurs œuvres qui ont marqué la littérature française, notamment une histoire se déroulant sous les arches de Notre-Dame. En 1831, son roman a provoqué un vif intérêt à Paris. Meanwhile, in London, Dickens was publishing Oliver Twist, a novel that exposed the harsh realities of child labor. Hugo’s influence reached beyond France, inspiring writers across Europe. En Espagne, Cervantes est considéré comme un pionnier du roman moderne. Don Quijote sigue siendo una obra fundamental en la literatura hispánica. À la même époque, Hugo participait à des débats politiques sur la condition des pauvres. He was deeply involved in the social movements of his time, advocating for justice and equality."""
+    print(model.text_split(long_text_example))
