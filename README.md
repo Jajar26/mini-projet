@@ -17,7 +17,7 @@ Fonctionnalités :
 
 Exemples : 
 
-model = NERNEL()
+    model = NERNEL()
 
     text_example = """Einstein was a physicist. Tesla cars run on electric batteries. Newton mede la fuerza. El Newton es la medida para cuantificar la fuerza. Hilton investit. Je vais dormir au Hilton cette nuit."""
     
