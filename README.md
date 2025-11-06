@@ -18,9 +18,11 @@ Fonctionnalités :
 Exemples : 
 
 model = NERNEL()
+
     text_example = """Einstein was a physicist. Tesla cars run on electric batteries. Newton mede la fuerza. El Newton es la medida para cuantificar la fuerza. Hilton investit. Je vais dormir au Hilton cette nuit."""
     
     print(model.text_split(text_example))
+    
     long_text_example = """Hugo a écrit plusieurs œuvres qui ont marqué la littérature française, notamment une histoire se déroulant sous les arches de Notre-Dame. En 1831, son roman a provoqué un vif intérêt à Paris. Meanwhile, in London, Dickens was publishing Oliver Twist, a novel that exposed the harsh realities of child labor. Hugo’s influence reached beyond France, inspiring writers across Europe. En Espagne, Cervantes est considéré comme un pionnier du roman moderne. Don Quijote sigue siendo una obra fundamental en la literatura hispánica. À la même époque, Hugo participait à des débats politiques sur la condition des pauvres. He was deeply involved in the social movements of his time, advocating for justice and equality."""
     
     print(model.text_split(long_text_example))
