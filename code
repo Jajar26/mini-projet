@@ -32,6 +32,8 @@ class NERNEL:
             # Insertion de balises pour encadrer l'entité dans le prompt
             prompts.append(f"{left} [START_ENT] {entity['word']} [END_ENT] {right}")
 
+        if not prompts:
+          return text
 
         # Étape 3 : Génération des titres Wikipédia à partir des prompts
         inputs = self.ned_tokenizer(prompts, return_tensors="pt", padding=True)
