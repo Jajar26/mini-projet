@@ -62,10 +62,25 @@ class NERNEL:
       processed = [self.replace_entities_with_titles(sentence.strip() + '.') for sentence in sentences] #Chaque phrase est traitée séparément
       return ' '.join(processed)  # Reconstruction du texte final avec des espaces entre les phrases
 
-# Point d'entrée du script
 if __name__ == "__main__":
     model = NERNEL()
+
     text_example = """Einstein was a physicist. Tesla cars run on electric batteries. Newton mede la fuerza. El Newton es la medida para cuantificar la fuerza. Hilton investit. Je vais dormir au Hilton cette nuit."""
-    print(model.text_split(text_example))
+
+    start_time = time.time()
+    output = model.text_split(text_example)
+    end_time = time.time()
+
+    print(f"Temps d'exécution : {end_time - start_time:.2f} secondes")
+    print(f"Nombre de caractères : {len(text_example)}")
+    print("Résultat :", output)
+
     long_text_example = """Hugo a écrit plusieurs œuvres qui ont marqué la littérature française, notamment une histoire se déroulant sous les arches de Notre-Dame. En 1831, son roman a provoqué un vif intérêt à Paris. Meanwhile, in London, Dickens was publishing Oliver Twist, a novel that exposed the harsh realities of child labor. Hugo’s influence reached beyond France, inspiring writers across Europe. En Espagne, Cervantes est considéré comme un pionnier du roman moderne. Don Quijote sigue siendo una obra fundamental en la literatura hispánica. À la même époque, Hugo participait à des débats politiques sur la condition des pauvres. He was deeply involved in the social movements of his time, advocating for justice and equality."""
-    print(model.text_split(long_text_example))
+
+    start_time = time.time()
+    output = model.text_split(long_text_example)
+    end_time = time.time()
+
+    print(f"Temps d'exécution : {end_time - start_time:.2f} secondes")
+    print(f"Nombre de caractères : {len(long_text_example)}")
+    print("Résultat :", output)
